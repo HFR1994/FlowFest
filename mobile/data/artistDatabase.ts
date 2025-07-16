@@ -78,28 +78,40 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     currentFestival: [
       {
         eventDetails: {
-          eventName: 'Sunshine Music Fest',
+          eventName: 'Global Beats Festival',
           stage: 'Main Stage',
-          time: '6:00 PM - 7:00 PM'
+          time: '8:00 PM - 9:30 PM',
         },
         capacity: {
-          current: 3200,
+          current: 4000,
           max: 5000,
-          crowdLevel: 'mid'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Electric Vibes',
-          stage: 'Electronic Stage',
-          time: '9:00 PM - 10:30 PM'
+          stage: 'Synth Dome',
+          time: '10:00 PM - 11:30 PM',
         },
         capacity: {
-          current: 2800,
-          max: 4000,
-          crowdLevel: 'high'
-        }
-      }
+          current: 3200,
+          max: 3500,
+          crowdLevel: 'high',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Electro Stage',
+          time: '7:00 PM - 8:30 PM',
+        },
+        capacity: {
+          current: 2200,
+          max: 3000,
+          crowdLevel: 'mid',
+        },
+      },
     ]
   },
   'Sunset Riders': {
@@ -143,27 +155,39 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Sunshine Music Fest',
           stage: 'Main Stage',
-          time: '7:30 PM - 9:00 PM'
+          time: '7:30 PM - 9:00 PM',
         },
         capacity: {
           current: 4500,
           max: 6000,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Global Beats Festival',
           stage: 'Acoustic Stage',
-          time: '3:00 PM - 4:00 PM'
+          time: '3:00 PM - 4:00 PM',
         },
         capacity: {
           current: 1200,
           max: 2000,
-          crowdLevel: 'mid'
-        }
-      }
-    ],
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Rock the Valley',
+          stage: 'Valley Stage',
+          time: '5:00 PM - 6:30 PM',
+        },
+        capacity: {
+          current: 1100,
+          max: 1800,
+          crowdLevel: 'mid',
+        },
+      },
+    ]
   },
   'Neon Dreams': {
     name: 'Neon Dreams',
@@ -204,27 +228,63 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
       {
         eventDetails: {
           eventName: 'Electric Vibes',
-          stage: 'Electronic Stage',
-          time: '10:00 PM - 11:30 PM'
+          stage: 'Synth Dome',
+          time: '9:00 PM - 10:30 PM',
+        },
+        capacity: {
+          current: 2700,
+          max: 3200,
+          crowdLevel: 'high',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Main Stage',
+          time: '8:00 PM - 9:30 PM',
         },
         capacity: {
           current: 3500,
-          max: 4500,
-          crowdLevel: 'high'
-        }
+          max: 4000,
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Sunshine Music Fest',
-          stage: 'Chill Stage',
-          time: '2:00 PM - 3:30 PM'
+          stage: 'Pop Stage',
+          time: '7:00 PM - 8:00 PM',
         },
         capacity: {
-          current: 800,
-          max: 1500,
-          crowdLevel: 'low'
-        }
-      }
+          current: 2400,
+          max: 3000,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Aurora Soundscape',
+          stage: 'Northern Lights Stage',
+          time: '6:00 PM - 7:30 PM',
+        },
+        capacity: {
+          current: 1100,
+          max: 1600,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Rock the Valley',
+          stage: 'Valley Stage',
+          time: '5:00 PM - 6:30 PM',
+        },
+        capacity: {
+          current: 1300,
+          max: 2000,
+          crowdLevel: 'mid',
+        },
+      },
     ],
   },
   'Crystal Echo': {
@@ -267,27 +327,75 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Global Beats Festival',
           stage: 'Wellness Stage',
-          time: '11:00 AM - 12:30 PM'
+          time: '11:00 AM - 12:30 PM',
         },
         capacity: {
           current: 600,
           max: 1000,
-          crowdLevel: 'mid'
-        }
+          crowdLevel: 'mid',
+        },
       },
       {
         eventDetails: {
           eventName: 'Electric Vibes',
           stage: 'Meditation Dome',
-          time: '6:00 PM - 7:00 PM'
+          time: '6:00 PM - 7:00 PM',
         },
         capacity: {
           current: 300,
           max: 500,
-          crowdLevel: 'low'
-        }
-      }
-    ],
+          crowdLevel: 'low',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Chill Stage',
+          time: '4:00 PM - 5:30 PM',
+        },
+        capacity: {
+          current: 1200,
+          max: 2000,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Rock the Valley',
+          stage: 'Main Stage',
+          time: '2:00 PM - 3:30 PM',
+        },
+        capacity: {
+          current: 1400,
+          max: 2500,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Jazz in the Dunes',
+          stage: 'Sunset Stage',
+          time: '6:00 PM - 7:30 PM',
+        },
+        capacity: {
+          current: 700,
+          max: 1200,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Aurora Soundscape',
+          stage: 'Ambient Stage',
+          time: '8:00 PM - 9:30 PM',
+        },
+        capacity: {
+          current: 900,
+          max: 1500,
+          crowdLevel: 'mid',
+        },
+      },
+    ]
   },
   'Solar Flare': {
     name: 'Solar Flare',
@@ -330,27 +438,27 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Electric Vibes',
           stage: 'Main Stage',
-          time: '8:00 PM - 9:30 PM'
+          time: '8:00 PM - 9:30 PM',
         },
         capacity: {
           current: 5200,
           max: 7000,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Sunshine Music Fest',
           stage: 'Fusion Stage',
-          time: '4:00 PM - 5:30 PM'
+          time: '4:00 PM - 5:30 PM',
         },
         capacity: {
           current: 2800,
           max: 3500,
-          crowdLevel: 'high'
-        }
-      }
-    ],
+          crowdLevel: 'high',
+        },
+      },
+    ]
   },
   'African Drums Collective': {
     name: 'African Drums Collective',
@@ -402,7 +510,7 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
       },
       {
         eventDetails: {
-          eventName: 'Sunshine Music Fest',
+          eventName: 'Jazz in the Dunes',
           stage: 'Cultural Stage',
           time: '1:00 PM - 2:00 PM'
         },
@@ -455,26 +563,38 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Global Beats Festival',
           stage: 'Main Stage',
-          time: '9:00 PM - 10:30 PM'
+          time: '9:00 PM - 10:30 PM',
         },
         capacity: {
           current: 6800,
           max: 8000,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Sunshine Music Fest',
           stage: 'Latin Stage',
-          time: '6:30 PM - 7:30 PM'
+          time: '6:30 PM - 7:30 PM',
         },
         capacity: {
           current: 3200,
           max: 4000,
-          crowdLevel: 'high'
-        }
-      }
+          crowdLevel: 'high',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Rock the Valley',
+          stage: 'Rock Stage',
+          time: '4:00 PM - 5:30 PM',
+        },
+        capacity: {
+          current: 1300,
+          max: 2100,
+          crowdLevel: 'mid',
+        },
+      },
     ],
   },
   'Asian Fusion Band': {
@@ -517,26 +637,50 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Global Beats Festival',
           stage: 'World Fusion Stage',
-          time: '4:30 PM - 6:00 PM'
+          time: '4:30 PM - 6:00 PM',
         },
         capacity: {
           current: 1800,
           max: 2500,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Electric Vibes',
           stage: 'Cultural Stage',
-          time: '12:00 PM - 1:30 PM'
+          time: '12:00 PM - 1:30 PM',
         },
         capacity: {
           current: 900,
           max: 1500,
-          crowdLevel: 'mid'
-        }
-      }
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Electronic Stage',
+          time: '3:00 PM - 4:30 PM',
+        },
+        capacity: {
+          current: 1300,
+          max: 2200,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Jazz in the Dunes',
+          stage: 'Desert Courtyard',
+          time: '5:00 PM - 6:30 PM',
+        },
+        capacity: {
+          current: 650,
+          max: 1100,
+          crowdLevel: 'mid',
+        },
+      },
     ],
   },
   'Midnight Pulse': {
@@ -579,26 +723,50 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Electric Vibes',
           stage: 'Techno Stage',
-          time: '11:00 PM - 12:30 AM'
+          time: '11:00 PM - 12:30 AM',
         },
         capacity: {
           current: 2500,
           max: 3000,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Global Beats Festival',
           stage: 'Underground Stage',
-          time: '1:00 AM - 2:30 AM'
+          time: '1:00 AM - 2:30 AM',
         },
         capacity: {
           current: 1200,
           max: 1800,
-          crowdLevel: 'mid'
-        }
-      }
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Night Stage',
+          time: '10:00 PM - 11:30 PM',
+        },
+        capacity: {
+          current: 1600,
+          max: 2500,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Aurora Soundscape',
+          stage: 'Northern Lights Stage',
+          time: '9:00 PM - 10:30 PM',
+        },
+        capacity: {
+          current: 700,
+          max: 1200,
+          crowdLevel: 'mid',
+        },
+      },
     ],
   },
   'Rhythm Collective': {
@@ -648,18 +816,6 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
           max: 5000,
           crowdLevel: 'high'
         }
-      },
-      {
-        eventDetails: {
-          eventName: 'Sunshine Music Fest',
-          stage: 'World Beat Stage',
-          time: '3:30 PM - 4:30 PM'
-        },
-        capacity: {
-          current: 2100,
-          max: 3000,
-          crowdLevel: 'mid'
-        }
       }
     ],
   },
@@ -703,27 +859,51 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Electric Vibes',
           stage: 'World Fusion Stage',
-          time: '8:30 PM - 10:00 PM'
+          time: '8:30 PM - 10:00 PM',
         },
         capacity: {
           current: 2800,
           max: 3500,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Global Beats Festival',
           stage: 'Electronic Stage',
-          time: '5:30 PM - 6:30 PM'
+          time: '5:30 PM - 6:30 PM',
         },
         capacity: {
           current: 1600,
           max: 2200,
-          crowdLevel: 'high'
-        }
-      }
-    ],
+          crowdLevel: 'high',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Jazz in the Dunes',
+          stage: 'Sahara Tent',
+          time: '7:00 PM - 8:30 PM',
+        },
+        capacity: {
+          current: 550,
+          max: 900,
+          crowdLevel: 'mid',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Aurora Soundscape',
+          stage: 'Northern Fusion Stage',
+          time: '6:00 PM - 7:30 PM',
+        },
+        capacity: {
+          current: 800,
+          max: 1300,
+          crowdLevel: 'mid',
+        },
+      },
+    ]
   },
   'Bass Revolution': {
     name: 'Bass Revolution',
@@ -766,26 +946,50 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
         eventDetails: {
           eventName: 'Electric Vibes',
           stage: 'Bass Stage',
-          time: '10:30 PM - 12:00 AM'
+          time: '10:30 PM - 12:00 AM',
         },
         capacity: {
           current: 4200,
           max: 5500,
-          crowdLevel: 'high'
-        }
+          crowdLevel: 'high',
+        },
       },
       {
         eventDetails: {
           eventName: 'Sunshine Music Fest',
           stage: 'Electronic Stage',
-          time: '8:00 PM - 9:00 PM'
+          time: '8:00 PM - 9:00 PM',
         },
         capacity: {
           current: 3500,
           max: 4500,
-          crowdLevel: 'high'
-        }
-      }
+          crowdLevel: 'high',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Dance Hall',
+          time: '9:00 PM - 10:30 PM',
+        },
+        capacity: {
+          current: 2800,
+          max: 4000,
+          crowdLevel: 'high',
+        },
+      },
+      {
+        eventDetails: {
+          eventName: 'Aurora Soundscape',
+          stage: 'Experimental Bass Stage',
+          time: '7:00 PM - 8:30 PM',
+        },
+        capacity: {
+          current: 1100,
+          max: 1700,
+          crowdLevel: 'mid',
+        },
+      },
     ],
   },
 };

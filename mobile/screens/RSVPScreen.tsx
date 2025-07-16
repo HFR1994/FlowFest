@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Animate
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Festival } from './EventDetailScreen';
+import { genericArtistDatabase } from '../data/artistDatabase';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -86,86 +87,57 @@ const mockNewsData: NewsItem[] = [
   }
 ];
 
-const scheduleData = [
-  {
-    stageName: 'Main Stage',
-    events: [
-      {
-        id: 'e1',
-        time: '6:00 PM - 7:00 PM',
-        festival: {
-          id: '1',
-          name: 'The Electric Waves',
-          location: 'Main Stage',
-          dates: 'June 10, 2024',
-          description: 'Pioneers of electronic music blending synthesized beats with organic sounds.',
-          image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-          lineup: ['The Electric Waves'],
-          ticketPrice: '$50',
-          venue: 'Main Stage',
-          capacity: '5000',
-          genre: 'Electronic/Synthwave',
-        },
-      },
-      {
-        id: 'e2',
-        time: '7:30 PM - 8:30 PM',
-        festival: {
-          id: '2',
-          name: 'Sunset Riders',
-          location: 'Main Stage',
-          dates: 'June 10, 2024',
-          description: 'Country Rock/Folk band with high-energy performances and storytelling lyrics.',
-          image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=400&fit=crop',
-          lineup: ['Sunset Riders'],
-          ticketPrice: '$45',
-          venue: 'Main Stage',
-          capacity: '5000',
-          genre: 'Country Rock/Folk',
-        },
-      },
-    ],
-  },
-  {
-    stageName: 'Electronic Tent',
-    events: [
-      {
-        id: 'e3',
-        time: '8:00 PM - 9:00 PM',
-        festival: {
-          id: '3',
-          name: 'Neon Dreams',
-          location: 'Electronic Tent',
-          dates: 'June 10, 2024',
-          description: 'Immersive electronic experiences with spectacular light shows.',
-          image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop',
-          lineup: ['Neon Dreams'],
-          ticketPrice: '$40',
-          venue: 'Electronic Tent',
-          capacity: '2000',
-          genre: 'Electronic/Ambient',
-        },
-      },
-      {
-        id: 'e4',
-        time: '9:30 PM - 10:30 PM',
-        festival: {
-          id: '4',
-          name: 'Crystal Echo',
-          location: 'Electronic Tent',
-          dates: 'June 10, 2024',
-          description: 'Ethereal soundscapes blending electronic and acoustic elements.',
-          image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-          lineup: ['Crystal Echo'],
-          ticketPrice: '$40',
-          venue: 'Electronic Tent',
-          capacity: '2000',
-          genre: 'Electronic/Ambient',
-        },
-      },
-    ],
-  },
-];
+// Generate schedule data from artist database filtered by festival name
+const generateScheduleData = (festivalName: string) => {
+  const stageMap: { [key: string]: any[] } = {};
+  let eventId = 1;
+
+  // Process each artist in the database
+  Object.values(genericArtistDatabase).forEach((artist) => {
+    artist.currentFestival.forEach((festivalEvent) => {
+      // Filter to only include events that match the desired festival name
+      if (festivalEvent.eventDetails.eventName === festivalName) {
+        const stageName = festivalEvent.eventDetails.stage;
+        
+        if (!stageMap[stageName]) {
+          stageMap[stageName] = [];
+        }
+
+        // Create festival object in the format expected by the UI
+        const festivalData: Festival = {
+          id: eventId.toString(),
+          name: artist.name,
+          location: stageName,
+          dates: 'June 10, 2024', // Default date
+          description: artist.bio.substring(0, 100) + '...', // Truncated bio
+          image: artist.image,
+          lineup: [artist.name],
+          ticketPrice: '$45', // Default price
+          venue: stageName,
+          capacity: festivalEvent.capacity.max.toString(),
+          genre: artist.genre,
+        };
+
+        stageMap[stageName].push({
+          id: `e${eventId}`,
+          time: festivalEvent.eventDetails.time,
+          festival: festivalData,
+        });
+
+        eventId++;
+      }
+    });
+  });
+
+  // Convert stage map to array format expected by UI
+  return Object.entries(stageMap).map(([stageName, events]) => ({
+    stageName,
+    events: events.sort((a, b) => {
+      // Sort events by time (basic string comparison should work for most time formats)
+      return a.time.localeCompare(b.time);
+    }),
+  }));
+};
 
 interface SwipeableNewsItemProps {
   item: NewsItem;
@@ -272,6 +244,9 @@ export default function RSVPScreen() {
   const [activeTab, setActiveTab] = useState<'news' | 'schedule' | 'map'>('news');
   const [rsvpStatus, setRsvpStatus] = useState<'going' | 'maybe' | 'not-going' | null>(null);
   const [newsData, setNewsData] = useState<NewsItem[]>(mockNewsData);
+
+  // Generate schedule data filtered by the current festival name
+  const scheduleData = generateScheduleData(festival.name);
 
   const handleRSVP = (status: 'going' | 'maybe' | 'not-going') => {
     setRsvpStatus(status);
