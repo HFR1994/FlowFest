@@ -11,6 +11,9 @@ type RootStackParamList = {
   EventDetail: { festival: Festival };
   RSVP: { festival: Festival };
   GenericArtist: { artist: any };
+  ArtistDetail: { artist: any };
+  AutomaticScheduling: undefined;
+  WeeklyPlaylist: { playlist: any };
 };
 
 type RSVPRouteProp = RouteProp<RootStackParamList, 'RSVP'>;
@@ -279,10 +282,36 @@ export default function RSVPScreen() {
   };
 
   const handleArtistSelect = (artistFestival: Festival) => {
-    // Navigate to GenericArtist screen instead of showing modal
-    const artistInfo = require('../data/artistDatabase').genericArtistDatabase[artistFestival.name];
-    if (artistInfo) {
-      navigation.navigate('GenericArtist', { artist: artistInfo });
+    // Navigate to ArtistDetail screen instead of GenericArtist
+    const genericArtistInfo = require('../data/artistDatabase').genericArtistDatabase[artistFestival.name];
+    if (genericArtistInfo) {
+      // Transform GenericArtistInfo to ArtistInfo format expected by ArtistDetailScreen
+      const artistDetailInfo = {
+        name: genericArtistInfo.name,
+        bio: genericArtistInfo.bio,
+        genre: genericArtistInfo.genre,
+        image: genericArtistInfo.image,
+        otherEvents: [
+          'Summer Music Festival 2024',
+          'Electronic Nights Tour',
+          'City Beats Concert Series'
+        ],
+        eventDetails: {
+          eventName: festival.name,
+          stage: artistFestival.location,
+          time: scheduleData
+            .flatMap(stage => stage.events)
+            .find(event => event.festival.name === artistFestival.name)?.time || 'TBA'
+        },
+        capacity: {
+          current: Math.floor(parseInt(artistFestival.capacity) * 0.75), // Simulate 75% capacity
+          max: parseInt(artistFestival.capacity),
+          crowdLevel: parseInt(artistFestival.capacity) > 3000 ? 'high' : 
+                     parseInt(artistFestival.capacity) > 1500 ? 'mid' : 'low'
+        },
+        spotifyUrl: genericArtistInfo.socialMedia.spotify
+      };
+      navigation.navigate('ArtistDetail', { artist: artistDetailInfo });
     }
   };
 
@@ -313,6 +342,24 @@ export default function RSVPScreen() {
         }
         return (
           <ScrollView style={styles.scheduleContainer}>
+            {/* Automatic Scheduling Button */}
+            <View style={styles.automaticSchedulingSection}>
+              <TouchableOpacity
+                style={styles.automaticSchedulingButton}
+                onPress={() => navigation.navigate('AutomaticScheduling')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.automaticSchedulingIcon}>🎯</Text>
+                <View style={styles.automaticSchedulingContent}>
+                  <Text style={styles.automaticSchedulingTitle}>Automatic Scheduling</Text>
+                  <Text style={styles.automaticSchedulingSubtitle}>
+                    Create your personalized festival schedule based on your music preferences
+                  </Text>
+                </View>
+                <Text style={styles.automaticSchedulingArrow}>→</Text>
+              </TouchableOpacity>
+            </View>
+
             {scheduleData.map((stage) => (
               <View key={stage.stageName} style={styles.stageSection}>
                 <Text style={styles.stageTitle}>{stage.stageName}</Text>
@@ -695,5 +742,45 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 14,
     fontStyle: 'italic',
+  },
+  // Automatic Scheduling Styles
+  automaticSchedulingSection: {
+    marginBottom: 20,
+  },
+  automaticSchedulingButton: {
+    backgroundColor: '#ff6b6b',
+    borderRadius: 15,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  automaticSchedulingIcon: {
+    fontSize: 30,
+    marginRight: 15,
+  },
+  automaticSchedulingContent: {
+    flex: 1,
+  },
+  automaticSchedulingTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  automaticSchedulingSubtitle: {
+    color: '#fff',
+    fontSize: 14,
+    opacity: 0.9,
+    lineHeight: 20,
+  },
+  automaticSchedulingArrow: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
