@@ -30,9 +30,10 @@ interface Festival {
 
 interface RSVPArtistListProps {
   lineup: string[];
+  name: string
 }
 
-export default function RSVPArtistList({ lineup }: RSVPArtistListProps) {
+export default function RSVPArtistList({ lineup, name }: RSVPArtistListProps) {
   const navigation = useNavigation<NavigationProp>();
   const [followedArtists, setFollowedArtists] = useState<Set<string>>(new Set());
 

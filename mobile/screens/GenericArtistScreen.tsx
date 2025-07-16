@@ -4,31 +4,31 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 interface GenericArtistInfo {
-  name: string;
-  bio: string;
-  genre: string;
-  image: string;
-  popularity: {
+  name?: string;
+  bio?: string;
+  genre?: string;
+  image?: string;
+  popularity?: {
     score: number;
     monthlyListeners: number;
     followers: number;
   };
-  discography: {
+  discography?: {
     albums: number;
     singles: number;
     collaborations: number;
   };
-  achievements: string[];
-  socialMedia: {
-    spotify: string;
+  achievements?: string[];
+  socialMedia?: {
+    spotify?: string;
     instagram?: string;
     twitter?: string;
     youtube?: string;
   };
-  careerHighlights: string[];
-  yearsActive: string;
-  origin: string;
-  labels: string[];
+  careerHighlights?: string[];
+  yearsActive?: string;
+  origin?: string;
+  labels?: string[];
 }
 
 type RootStackParamList = {
@@ -80,7 +80,7 @@ export default function GenericArtistScreen() {
     return { level: 'Emerging', color: '#96CEB4', icon: '🌱' };
   };
 
-  const popularityInfo = getPopularityLevel(artist.popularity.score);
+  const popularityInfo = artist.popularity ? getPopularityLevel(artist.popularity.score) : { level: 'N/A', color: '#888', icon: '❓' };
 
   return (
     <ScrollView style={styles.container}>
@@ -90,25 +90,25 @@ export default function GenericArtistScreen() {
         </TouchableOpacity>
       </View>
 
-      <Image source={{ uri: artist.image }} style={styles.artistImage} />
+      <Image source={{ uri: artist.image || 'https://via.placeholder.com/400x300?text=No+Image' }} style={styles.artistImage} />
       
       <View style={styles.content}>
-        <Text style={styles.artistName}>{artist.name}</Text>
-        <Text style={styles.artistGenre}>{artist.genre}</Text>
+        <Text style={styles.artistName}>{artist.name || 'Unknown Artist'}</Text>
+        <Text style={styles.artistGenre}>{artist.genre || 'Unknown Genre'}</Text>
         
         {/* Basic Info Section */}
         <View style={styles.basicInfoSection}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>🌍 Origin:</Text>
-            <Text style={styles.infoValue}>{artist.origin}</Text>
+            <Text style={styles.infoValue}>{artist.origin || 'N/A'}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>📅 Years Active:</Text>
-            <Text style={styles.infoValue}>{artist.yearsActive}</Text>
+            <Text style={styles.infoValue}>{artist.yearsActive || 'N/A'}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>🏷️ Labels:</Text>
-            <Text style={styles.infoValue}>{artist.labels.join(', ')}</Text>
+            <Text style={styles.infoValue}>{artist.labels ? artist.labels.join(', ') : 'N/A'}</Text>
           </View>
         </View>
 
@@ -119,7 +119,9 @@ export default function GenericArtistScreen() {
             <View style={styles.popularityHeader}>
               <Text style={styles.popularityIcon}>{popularityInfo.icon}</Text>
               <View style={styles.popularityInfo}>
-                <Text style={styles.popularityScore}>{artist.popularity.score}/100</Text>
+                <Text style={styles.popularityScore}>
+                  {artist.popularity ? `${artist.popularity.score}/100` : 'N/A'}
+                </Text>
                 <Text style={[styles.popularityLevel, { color: popularityInfo.color }]}>
                   {popularityInfo.level}
                 </Text>
@@ -128,11 +130,15 @@ export default function GenericArtistScreen() {
             
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{(artist.popularity.monthlyListeners / 1000000).toFixed(1)}M</Text>
+                <Text style={styles.statNumber}>
+                  {artist.popularity ? `${(artist.popularity.monthlyListeners / 1000000).toFixed(1)}M` : 'N/A'}
+                </Text>
                 <Text style={styles.statLabel}>Monthly Listeners</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{(artist.popularity.followers / 1000).toFixed(0)}K</Text>
+                <Text style={styles.statNumber}>
+                  {artist.popularity ? `${(artist.popularity.followers / 1000).toFixed(0)}K` : 'N/A'}
+                </Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </View>
             </View>
@@ -144,15 +150,15 @@ export default function GenericArtistScreen() {
           <Text style={styles.sectionTitle}>Discography</Text>
           <View style={styles.discographyGrid}>
             <View style={styles.discographyItem}>
-              <Text style={styles.discographyNumber}>{artist.discography.albums}</Text>
+              <Text style={styles.discographyNumber}>{artist.discography?.albums || 0}</Text>
               <Text style={styles.discographyLabel}>Albums</Text>
             </View>
             <View style={styles.discographyItem}>
-              <Text style={styles.discographyNumber}>{artist.discography.singles}</Text>
+              <Text style={styles.discographyNumber}>{artist.discography?.singles || 0}</Text>
               <Text style={styles.discographyLabel}>Singles</Text>
             </View>
             <View style={styles.discographyItem}>
-              <Text style={styles.discographyNumber}>{artist.discography.collaborations}</Text>
+              <Text style={styles.discographyNumber}>{artist.discography?.collaborations || 0}</Text>
               <Text style={styles.discographyLabel}>Collaborations</Text>
             </View>
           </View>
@@ -161,29 +167,43 @@ export default function GenericArtistScreen() {
         {/* Biography Section */}
         <View style={styles.bioSection}>
           <Text style={styles.sectionTitle}>Biography</Text>
-          <Text style={styles.bioText}>{artist.bio}</Text>
+          <Text style={styles.bioText}>{artist.bio || 'No biography available.'}</Text>
         </View>
 
         {/* Career Highlights Section */}
         <View style={styles.highlightsSection}>
           <Text style={styles.sectionTitle}>Career Highlights</Text>
-          {artist.careerHighlights.map((highlight, index) => (
-            <View key={index} style={styles.highlightItem}>
+          {artist.careerHighlights && artist.careerHighlights.length > 0 ? (
+            artist.careerHighlights.map((highlight, index) => (
+              <View key={index} style={styles.highlightItem}>
+                <Text style={styles.highlightIcon}>🏆</Text>
+                <Text style={styles.highlightText}>{highlight}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.highlightItem}>
               <Text style={styles.highlightIcon}>🏆</Text>
-              <Text style={styles.highlightText}>{highlight}</Text>
+              <Text style={styles.highlightText}>No career highlights available.</Text>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Achievements Section */}
         <View style={styles.achievementsSection}>
           <Text style={styles.sectionTitle}>Achievements</Text>
-          {artist.achievements.map((achievement, index) => (
-            <View key={index} style={styles.achievementItem}>
+          {artist.achievements && artist.achievements.length > 0 ? (
+            artist.achievements.map((achievement, index) => (
+              <View key={index} style={styles.achievementItem}>
+                <Text style={styles.achievementIcon}>🎖️</Text>
+                <Text style={styles.achievementText}>{achievement}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={styles.achievementItem}>
               <Text style={styles.achievementIcon}>🎖️</Text>
-              <Text style={styles.achievementText}>{achievement}</Text>
+              <Text style={styles.achievementText}>No achievements available.</Text>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Action Buttons */}
@@ -203,15 +223,17 @@ export default function GenericArtistScreen() {
         <View style={styles.socialSection}>
           <Text style={styles.sectionTitle}>Connect</Text>
           <View style={styles.socialButtons}>
-            <TouchableOpacity 
-              style={[styles.socialButton, styles.spotifyButton]}
-              onPress={() => handleSocialPress(artist.socialMedia.spotify, 'Spotify')}
-            >
-              <Text style={styles.socialIcon}>🎵</Text>
-              <Text style={styles.socialText}>Spotify</Text>
-            </TouchableOpacity>
+            {artist.socialMedia?.spotify && (
+              <TouchableOpacity 
+                style={[styles.socialButton, styles.spotifyButton]}
+                onPress={() => handleSocialPress(artist.socialMedia.spotify, 'Spotify')}
+              >
+                <Text style={styles.socialIcon}>🎵</Text>
+                <Text style={styles.socialText}>Spotify</Text>
+              </TouchableOpacity>
+            )}
 
-            {artist.socialMedia.instagram && (
+            {artist.socialMedia?.instagram && (
               <TouchableOpacity 
                 style={[styles.socialButton, styles.instagramButton]}
                 onPress={() => handleSocialPress(artist.socialMedia.instagram!, 'Instagram')}
@@ -221,7 +243,7 @@ export default function GenericArtistScreen() {
               </TouchableOpacity>
             )}
 
-            {artist.socialMedia.twitter && (
+            {artist.socialMedia?.twitter && (
               <TouchableOpacity 
                 style={[styles.socialButton, styles.twitterButton]}
                 onPress={() => handleSocialPress(artist.socialMedia.twitter!, 'Twitter')}
@@ -231,7 +253,7 @@ export default function GenericArtistScreen() {
               </TouchableOpacity>
             )}
 
-            {artist.socialMedia.youtube && (
+            {artist.socialMedia?.youtube && (
               <TouchableOpacity 
                 style={[styles.socialButton, styles.youtubeButton]}
                 onPress={() => handleSocialPress(artist.socialMedia.youtube!, 'YouTube')}

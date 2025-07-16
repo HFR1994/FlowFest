@@ -13,6 +13,6 @@
     "mobile"
   ],
   "devDependencies": {
-    "typescript": "^4.9.4"
+    "typescript": "~5.3.3"
   }
 }

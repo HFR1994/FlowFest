@@ -7,6 +7,7 @@ import RSVPScreen from './screens/RSVPScreen';
 import ArtistDetailScreen from './screens/ArtistDetailScreen';
 import GenericArtistScreen from './screens/GenericArtistScreen';
 import AutomaticSchedulingScreen from './screens/AutomaticSchedulingScreen';
+import ArtistSongsScreen from './screens/ArtistSongsScreen';
 import WeeklyPlaylistScreen from './screens/WeeklyPlaylistScreen';
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +22,7 @@ export default function App() {
         <Stack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
         <Stack.Screen name="GenericArtist" component={GenericArtistScreen} />
         <Stack.Screen name="AutomaticScheduling" component={AutomaticSchedulingScreen} />
+        <Stack.Screen name="ArtistSongs" component={ArtistSongsScreen} />
         <Stack.Screen name="WeeklyPlaylist" component={WeeklyPlaylistScreen} />
       </Stack.Navigator>
     </NavigationContainer>

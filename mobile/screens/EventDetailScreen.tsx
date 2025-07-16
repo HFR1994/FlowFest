@@ -79,7 +79,8 @@ export default function EventDetailScreen() {
           <Text style={styles.description}>{festival.description}</Text>
         </View>
 
-        <SimpleArtistList 
+        <SimpleArtistList
+          festivalName={festival.name} 
           lineup={festival.lineup} 
           onArtistPress={(artistName) => {
             const artistInfo = genericArtistDatabase[artistName];

@@ -24,6 +24,18 @@ export interface GenericArtistInfo {
   yearsActive: string;
   origin: string;
   labels: string[];
+  currentFestival: {
+    eventDetails: {
+      eventName: string;
+      stage: string;
+      time: string;
+    };
+    capacity: {
+      current: number;
+      max: number;
+      crowdLevel: 'low' | 'mid' | 'high';
+    };
+  }[];
 }
 
 export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
@@ -63,6 +75,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2018 - Present',
     origin: 'Berlin, Germany',
     labels: ['Neon Records', 'Electronic Arts Music'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Main Stage',
+          time: '6:00 PM - 7:00 PM'
+        },
+        capacity: {
+          current: 3200,
+          max: 5000,
+          crowdLevel: 'mid'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Electronic Stage',
+          time: '9:00 PM - 10:30 PM'
+        },
+        capacity: {
+          current: 2800,
+          max: 4000,
+          crowdLevel: 'high'
+        }
+      }
+    ]
   },
   'Sunset Riders': {
     name: 'Sunset Riders',
@@ -100,6 +138,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2017 - Present',
     origin: 'Nashville, Tennessee, USA',
     labels: ['Big Machine Records', 'Country Roads Music'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Main Stage',
+          time: '7:30 PM - 9:00 PM'
+        },
+        capacity: {
+          current: 4500,
+          max: 6000,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Acoustic Stage',
+          time: '3:00 PM - 4:00 PM'
+        },
+        capacity: {
+          current: 1200,
+          max: 2000,
+          crowdLevel: 'mid'
+        }
+      }
+    ],
   },
   'Neon Dreams': {
     name: 'Neon Dreams',
@@ -136,6 +200,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2019 - Present',
     origin: 'Los Angeles, California, USA',
     labels: ['Anjunadeep', 'Future Classic'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Electronic Stage',
+          time: '10:00 PM - 11:30 PM'
+        },
+        capacity: {
+          current: 3500,
+          max: 4500,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Chill Stage',
+          time: '2:00 PM - 3:30 PM'
+        },
+        capacity: {
+          current: 800,
+          max: 1500,
+          crowdLevel: 'low'
+        }
+      }
+    ],
   },
   'Crystal Echo': {
     name: 'Crystal Echo',
@@ -172,6 +262,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2016 - Present',
     origin: 'Sedona, Arizona, USA',
     labels: ['New Earth Records', 'Sounds True'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Wellness Stage',
+          time: '11:00 AM - 12:30 PM'
+        },
+        capacity: {
+          current: 600,
+          max: 1000,
+          crowdLevel: 'mid'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Meditation Dome',
+          time: '6:00 PM - 7:00 PM'
+        },
+        capacity: {
+          current: 300,
+          max: 500,
+          crowdLevel: 'low'
+        }
+      }
+    ],
   },
   'Solar Flare': {
     name: 'Solar Flare',
@@ -209,6 +325,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2019 - Present',
     origin: 'Austin, Texas, USA',
     labels: ['Atlantic Records', 'OWSLA'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Main Stage',
+          time: '8:00 PM - 9:30 PM'
+        },
+        capacity: {
+          current: 5200,
+          max: 7000,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Fusion Stage',
+          time: '4:00 PM - 5:30 PM'
+        },
+        capacity: {
+          current: 2800,
+          max: 3500,
+          crowdLevel: 'high'
+        }
+      }
+    ],
   },
   'African Drums Collective': {
     name: 'African Drums Collective',
@@ -245,6 +387,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2010 - Present',
     origin: 'Accra, Ghana',
     labels: ['World Circuit Records', 'Putumayo World Music'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'World Music Stage',
+          time: '5:00 PM - 6:30 PM'
+        },
+        capacity: {
+          current: 2200,
+          max: 3000,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Cultural Stage',
+          time: '1:00 PM - 2:00 PM'
+        },
+        capacity: {
+          current: 1500,
+          max: 2500,
+          crowdLevel: 'mid'
+        }
+      }
+    ],
   },
   'Latin Fire': {
     name: 'Latin Fire',
@@ -282,6 +450,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2015 - Present',
     origin: 'Miami, Florida, USA / Medellín, Colombia',
     labels: ['Sony Music Latin', 'Universal Music Latino'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Main Stage',
+          time: '9:00 PM - 10:30 PM'
+        },
+        capacity: {
+          current: 6800,
+          max: 8000,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Latin Stage',
+          time: '6:30 PM - 7:30 PM'
+        },
+        capacity: {
+          current: 3200,
+          max: 4000,
+          crowdLevel: 'high'
+        }
+      }
+    ],
   },
   'Asian Fusion Band': {
     name: 'Asian Fusion Band',
@@ -318,6 +512,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2014 - Present',
     origin: 'Tokyo, Japan / Singapore',
     labels: ['Nonesuch Records', 'ECM Records'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'World Fusion Stage',
+          time: '4:30 PM - 6:00 PM'
+        },
+        capacity: {
+          current: 1800,
+          max: 2500,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Cultural Stage',
+          time: '12:00 PM - 1:30 PM'
+        },
+        capacity: {
+          current: 900,
+          max: 1500,
+          crowdLevel: 'mid'
+        }
+      }
+    ],
   },
   'Midnight Pulse': {
     name: 'Midnight Pulse',
@@ -354,6 +574,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2020 - Present',
     origin: 'Amsterdam, Netherlands',
     labels: ['Drumcode', 'Afterlife'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Techno Stage',
+          time: '11:00 PM - 12:30 AM'
+        },
+        capacity: {
+          current: 2500,
+          max: 3000,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Underground Stage',
+          time: '1:00 AM - 2:30 AM'
+        },
+        capacity: {
+          current: 1200,
+          max: 1800,
+          crowdLevel: 'mid'
+        }
+      }
+    ],
   },
   'Rhythm Collective': {
     name: 'Rhythm Collective',
@@ -390,6 +636,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2016 - Present',
     origin: 'Kingston, Jamaica / Port of Spain, Trinidad',
     labels: ['VP Records', 'Greensleeves Records'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Reggae Stage',
+          time: '7:00 PM - 8:30 PM'
+        },
+        capacity: {
+          current: 3800,
+          max: 5000,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'World Beat Stage',
+          time: '3:30 PM - 4:30 PM'
+        },
+        capacity: {
+          current: 2100,
+          max: 3000,
+          crowdLevel: 'mid'
+        }
+      }
+    ],
   },
   'Electric Nomads': {
     name: 'Electric Nomads',
@@ -426,6 +698,32 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2017 - Present',
     origin: 'Marrakech, Morocco / Berlin, Germany',
     labels: ['Real World Records', 'Ninja Tune'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'World Fusion Stage',
+          time: '8:30 PM - 10:00 PM'
+        },
+        capacity: {
+          current: 2800,
+          max: 3500,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Global Beats Festival',
+          stage: 'Electronic Stage',
+          time: '5:30 PM - 6:30 PM'
+        },
+        capacity: {
+          current: 1600,
+          max: 2200,
+          crowdLevel: 'high'
+        }
+      }
+    ],
   },
   'Bass Revolution': {
     name: 'Bass Revolution',
@@ -463,5 +761,31 @@ export const genericArtistDatabase: { [key: string]: GenericArtistInfo } = {
     yearsActive: '2019 - Present',
     origin: 'Los Angeles, California, USA / London, UK',
     labels: ['Never Say Die Records', 'Monstercat'],
+    currentFestival: [
+      {
+        eventDetails: {
+          eventName: 'Electric Vibes',
+          stage: 'Bass Stage',
+          time: '10:30 PM - 12:00 AM'
+        },
+        capacity: {
+          current: 4200,
+          max: 5500,
+          crowdLevel: 'high'
+        }
+      },
+      {
+        eventDetails: {
+          eventName: 'Sunshine Music Fest',
+          stage: 'Electronic Stage',
+          time: '8:00 PM - 9:00 PM'
+        },
+        capacity: {
+          current: 3500,
+          max: 4500,
+          crowdLevel: 'high'
+        }
+      }
+    ],
   },
 };
