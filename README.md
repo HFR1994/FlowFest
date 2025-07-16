@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Festival Companion App
+
+A React Native mobile app built with Expo for festival-goers to explore events, artists, and manage their RSVP status.
+
+## Features
+
+- **Festival Information**: Browse festival details, lineup, and venue information
+- **Artist Profiles**: View detailed artist information including bio, popularity stats, and social media links
+- **Schedule Integration**: Click on artists in the schedule to view their details in the artists tab
+- **RSVP Management**: Track your attendance status and follow favorite artists
+- **News & Updates**: Stay informed with festival announcements and updates
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js (v16 or later)
+- npm or yarn
+- Expo CLI (`npm install -g @expo/cli`)
+- Expo Go app on your mobile device
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd festival-companion-expo
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm run install-mobile
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Running the App
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Start the Expo development server:
+```bash
+npm start
+```
 
-## Learn More
+2. Use Expo Go app on your phone to scan the QR code, or run on simulator:
+```bash
+# For iOS simulator
+npm run ios
 
-To learn more about Next.js, take a look at the following resources:
+# For Android emulator
+npm run android
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# For web browser
+npm run web
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+mobile/
+├── App.tsx                 # Main app entry point
+├── app.json               # Expo configuration
+├── components/            # Reusable components
+│   ├── RSVPArtistList.tsx # Artist list with detail view
+│   └── ...
+├── screens/               # App screens
+│   ├── RSVPScreen.tsx     # RSVP management screen
+│   ├── HomeScreen.tsx     # Home screen
+│   └── ...
+├── data/                  # Data and mock data
+│   └── artistDatabase.ts  # Artist information database
+└── assets/               # Images and static assets
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Key Implementation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app features a seamless integration between the schedule and artist details:
+
+- **Schedule → Artist Details**: Clicking on any artist in the schedule automatically switches to the artists tab and displays detailed information about that artist
+- **Rich Artist Profiles**: Comprehensive artist information including biography, popularity metrics, social media links, and follow functionality
+- **Smooth Navigation**: Users can easily navigate back to the full artist list using the "Back to Artists" button
+
+## Technologies Used
+
+- **React Native**: Cross-platform mobile development
+- **Expo**: Development platform and tools
+- **TypeScript**: Type-safe JavaScript
+- **React Navigation**: Navigation library for React Native
+
+## Development
+
+The app is structured as an Expo managed workflow, making it easy to develop and deploy across iOS and Android platforms.
+
+To make changes:
+1. Edit files in the `mobile/` directory
+2. The Expo development server will automatically reload the app
+3. Test on your device using Expo Go or simulators
