@@ -11,6 +11,31 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 
+// Web-only imports for React Leaflet
+let MapContainer: any, TileLayer: any, Marker: any, Popup: any, Circle: any;
+let L: any;
+if (Platform.OS === 'web') {
+  try {
+    const leaflet = require('react-leaflet');
+    MapContainer = leaflet.MapContainer;
+    TileLayer = leaflet.TileLayer;
+    Marker = leaflet.Marker;
+    Popup = leaflet.Popup;
+    Circle = leaflet.Circle;
+    L = require('leaflet');
+    
+    // Fix for default markers in React Leaflet
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    });
+  } catch (error) {
+    console.warn('React Leaflet not available:', error);
+  }
+}
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface MapLocation {
@@ -227,7 +252,7 @@ const InteractiveMap: React.FC = () => {
     }
   };
 
-  // Generate HTML for OpenStreetMap with Leaflet
+  // Generate HTML for OpenStreetMap with Leaflet (for mobile)
   const generateMapHTML = () => {
     const markersJS = mapLocations.map(location => `
       var customIcon${location.id.replace(/-/g, '_')} = L.divIcon({
@@ -393,6 +418,7 @@ const InteractiveMap: React.FC = () => {
     }
   };
 
+  // Mobile WebView map
   const renderMap = () => {
     return (
       <View style={styles.mapWrapper}>
@@ -423,6 +449,142 @@ const InteractiveMap: React.FC = () => {
     );
   };
 
+  // Custom marker component for React Leaflet
+  const CustomMarker = ({ location }: { location: MapLocation }) => {
+    if (!L) return null;
+
+    const customIcon = L.divIcon({
+      html: `<div style="background-color: ${getLocationColor(location.type)}; width: 35px; height: 35px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 3px 8px rgba(0,0,0,0.4); cursor: pointer;">${getLocationIcon(location.type)}</div>`,
+      className: 'custom-div-icon',
+      iconSize: [35, 35],
+      iconAnchor: [17.5, 17.5]
+    });
+
+    return (
+      <Marker
+        position={[location.latitude, location.longitude]}
+        icon={customIcon}
+        eventHandlers={{
+          click: () => {
+            setSelectedLocation(location);
+            setShowModal(true);
+          }
+        }}
+      >
+        <Popup>
+          <div style={{ textAlign: 'center', minWidth: '200px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+            <h3 style={{ margin: '8px 0', color: '#333', fontSize: '16px' }}>
+              {getLocationIcon(location.type)} {location.name}
+            </h3>
+            <p style={{ margin: '8px 0', color: '#666', fontSize: '13px', lineHeight: '1.4' }}>
+              {location.description}
+            </p>
+            <div style={{
+              background: getCrowdColor(location.crowdLevel),
+              color: 'white',
+              padding: '4px 10px',
+              borderRadius: '12px',
+              fontSize: '11px',
+              margin: '8px 0',
+              display: 'inline-block',
+              fontWeight: 'bold'
+            }}>
+              {location.crowdLevel.toUpperCase()} CROWD
+            </div>
+            {location.capacity && (
+              <p style={{ margin: '8px 0', fontSize: '12px', color: '#888', fontWeight: '500' }}>
+                {location.currentAttendance}/{location.capacity} capacity
+              </p>
+            )}
+          </div>
+        </Popup>
+      </Marker>
+    );
+  };
+
+  // React Leaflet map for web
+  const renderWebMap = () => {
+    if (!MapContainer || !TileLayer || !L) {
+      return renderFallback();
+    }
+
+    return (
+      <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <MapContainer
+          center={[40.7829, -73.9654]}
+          zoom={16}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={true}
+          scrollWheelZoom={true}
+          doubleClickZoom={true}
+          touchZoom={true}
+          dragging={true}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            maxZoom={19}
+            minZoom={10}
+          />
+          
+          {/* Busy areas (circles) */}
+          {busyAreas.map(area => (
+            <Circle
+              key={area.id}
+              center={[area.latitude, area.longitude]}
+              radius={area.radius}
+              pathOptions={{
+                color: 'transparent',
+                fillColor: getBusyAreaColor(area.intensity).replace('rgba', 'rgb').replace(/, 0\.\d+\)/, ')'),
+                fillOpacity: parseFloat(getBusyAreaColor(area.intensity).match(/0\.\d+/)?.[0] || '0.3'),
+              }}
+            />
+          ))}
+          
+          {/* Location markers */}
+          {mapLocations.map(location => (
+            <CustomMarker key={location.id} location={location} />
+          ))}
+        </MapContainer>
+        
+        {/* Web Legend */}
+        <div style={{
+          position: 'absolute',
+          top: '15px',
+          left: '15px',
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          borderRadius: '10px',
+          padding: '12px',
+          minWidth: '130px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+          zIndex: 1000,
+          color: 'white',
+          fontSize: '11px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '10px', fontSize: '13px' }}>Legend</div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ width: '14px', height: '14px', borderRadius: '7px', backgroundColor: '#ff6b6b', marginRight: '10px' }}></div>
+            <span>🎤 Stages</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ width: '14px', height: '14px', borderRadius: '7px', backgroundColor: '#4ecdc4', marginRight: '10px' }}></div>
+            <span>🍕 Food</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ width: '14px', height: '14px', borderRadius: '7px', backgroundColor: '#45b7d1', marginRight: '10px' }}></div>
+            <span>🏢 Facilities</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: '14px', height: '14px', borderRadius: '7px', backgroundColor: '#96ceb4', marginRight: '10px' }}></div>
+            <span>🚪 Entrances</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Fallback list view
   const renderFallback = () => (
     <View style={styles.fallbackContainer}>
       <Text style={styles.fallbackTitle}>🗺️ Festival Locations</Text>
@@ -455,14 +617,14 @@ const InteractiveMap: React.FC = () => {
       {/* Map Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🗺️ Festival Map</Text>
-        <Text style={styles.headerSubtitle}>Central Park, New York - OpenStreetMap</Text>
+        <Text style={styles.headerSubtitle}>My event location</Text>
       </View>
 
       {/* Map Container */}
       <View style={styles.mapContainer}>
-        {Platform.OS === 'web' ? renderFallback() : renderMap()}
+        {Platform.OS === 'web' ? renderWebMap() : renderMap()}
         
-        {/* Fixed Legend - only show on actual map */}
+        {/* Fixed Legend - only show on mobile map */}
         {Platform.OS !== 'web' && (
           <View style={styles.fixedLegend}>
             <Text style={styles.legendTitle}>Legend</Text>
