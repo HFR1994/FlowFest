@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  festival-app:
+    build: .
+    ports:
+      - "8081:8081"   # Expo web server
+      - "19000:19000" # Expo dev tools
+      - "19001:19001" # Expo tunnel
+      - "19002:19002" # Expo metro bundler
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/mobile/node_modules
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+    stdin_open: true
+    tty: true
+    networks:
+      - festival-network
+
+networks:
+  festival-network:
+    driver: bridge
