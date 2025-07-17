@@ -6,6 +6,7 @@ import { Festival } from './EventDetailScreen';
 import { genericArtistDatabase } from '../data/artistDatabase';
 import { useMessages } from '../contexts/MessageContext';
 import { MessageModal } from '../components/messaging/MessageModal';
+import InteractiveMap from '../components/InteractiveMap';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -359,12 +360,7 @@ export default function RSVPScreen() {
           </ScrollView>
         );
       case 'map':
-        return (
-          <View style={styles.tabContent}>
-            <Text style={styles.comingSoonText}>Interactive Map Coming Soon</Text>
-            <Text style={styles.comingSoonSubtext}>Festival venue map will be available here</Text>
-          </View>
-        );
+        return <InteractiveMap />;
       default:
         return null;
     }
