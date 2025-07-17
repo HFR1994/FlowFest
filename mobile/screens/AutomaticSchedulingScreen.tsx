@@ -1,25 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   Image,
   Dimensions,
+  FlatList,
   Alert,
-  Animated
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { weeklyPlaylists, WeeklyPlaylist, PlaylistTrack } from '../data/playlistData';
-import { generatePreferredSchedule, getAllVotes, getAllSongVotes } from '../data/votingData';
+import { weeklyPlaylists, PlaylistTrack } from '../data/playlistData';
 import { genericArtistDatabase } from '../data/artistDatabase';
+import { generatePreferredSchedule, getAllVotes, getAllSongVotes, voteLabels } from '../data/votingData';
+import { useMessages } from '../contexts/MessageContext';
+import { MessageModal } from '../components/messaging/MessageModal';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-const CARD_WIDTH = screenWidth * 0.75;
-const CARD_HEIGHT = screenHeight * 0.6;
-const CARD_SPACING = 20;
+const { width: screenWidth } = Dimensions.get('window');
 
 type RootStackParamList = {
   Home: undefined;
@@ -28,278 +27,184 @@ type RootStackParamList = {
   GenericArtist: { artist: any };
   ArtistDetail: { artist: any };
   AutomaticScheduling: undefined;
-  ArtistSongs: { artist: ArtistWithSongs };
-  WeeklyPlaylist: { playlist: WeeklyPlaylist };
+  ArtistSongs: { artist: any };
 };
 
 type AutomaticSchedulingNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AutomaticScheduling'>;
 
-interface ArtistWithSongs {
-  name: string;
+interface GroupedArtist {
+  artistName: string;
   songs: PlaylistTrack[];
-  image: string;
-  genre: string;
-  bio: string;
-  popularity: number;
+  artistInfo: any;
+  popularityScore: number;
+  totalDuration: string;
 }
 
 export default function AutomaticSchedulingScreen() {
   const navigation = useNavigation<AutomaticSchedulingNavigationProp>();
-  const [totalVotes, setTotalVotes] = useState(0);
-  const [preferenceStats, setPreferenceStats] = useState({
-    preferred: 0,
-    neutral: 0,
-    avoided: 0,
-    averageScore: 0
-  });
-  const [songStats, setSongStats] = useState({
-    totalSongVotes: 0,
-    preferredSongs: 0,
-    neutralSongs: 0,
-    avoidedSongs: 0,
-    averageSongScore: 0
-  });
-  const [artistsWithSongs, setArtistsWithSongs] = useState<ArtistWithSongs[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [selectedWeek, setSelectedWeek] = useState(1);
+  const [groupedArtists, setGroupedArtists] = useState<GroupedArtist[]>([]);
+  const [currentPlaylist, setCurrentPlaylist] = useState(weeklyPlaylists[0]);
+  const [pollingResults, setPollingResults] = useState<any>(null);
+  
+  // Message context
+  const { toggleModal, unreadCount } = useMessages();
 
   useEffect(() => {
-    groupSongsByArtist();
-    updateStats();
-    const interval = setInterval(updateStats, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    groupSongsByArtistForWeek(selectedWeek);
+    updatePollingResults();
+  }, [selectedWeek]);
 
-  const groupSongsByArtist = () => {
+  const updatePollingResults = () => {
+    const results = generatePreferredSchedule();
+    setPollingResults(results);
+  };
+
+  const calculateTotalDuration = (songs: PlaylistTrack[]): string => {
+    let totalSeconds = 0;
+    songs.forEach(song => {
+      const [minutes, seconds] = song.duration.split(':').map(Number);
+      totalSeconds += minutes * 60 + seconds;
+    });
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = totalSeconds % 60;
+    return `${totalMinutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const groupSongsByArtistForWeek = (weekNumber: number) => {
+    const playlist = weeklyPlaylists.find(p => p.weekNumber === weekNumber);
+    if (!playlist) return;
+
+    setCurrentPlaylist(playlist);
+
     const artistMap: { [key: string]: PlaylistTrack[] } = {};
     
-    // Group all songs by artist across all playlists
-    weeklyPlaylists.forEach(playlist => {
-      playlist.tracks.forEach(track => {
-        if (!artistMap[track.artist]) {
-          artistMap[track.artist] = [];
-        }
-        artistMap[track.artist].push(track);
-      });
+    playlist.tracks.forEach(track => {
+      if (!artistMap[track.artist]) {
+        artistMap[track.artist] = [];
+      }
+      artistMap[track.artist].push(track);
     });
 
-    // Convert to array with artist info
-    const artists: ArtistWithSongs[] = Object.keys(artistMap).map(artistName => {
-      const artistInfo = genericArtistDatabase[artistName];
-      return {
-        name: artistName,
-        songs: artistMap[artistName],
-        image: artistInfo?.image || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-        genre: artistInfo?.genre || 'Unknown',
-        bio: artistInfo?.bio || 'No bio available',
-        popularity: artistInfo?.popularity?.score || 0
-      };
-    });
+    const grouped: GroupedArtist[] = Object.keys(artistMap).map(artistName => ({
+      artistName,
+      songs: artistMap[artistName],
+      artistInfo: genericArtistDatabase[artistName],
+      popularityScore: genericArtistDatabase[artistName]?.popularity?.score ?? 0,
+      totalDuration: calculateTotalDuration(artistMap[artistName]),
+    }));
 
-    // Sort by popularity
-    artists.sort((a, b) => b.popularity - a.popularity);
-    setArtistsWithSongs(artists);
+    grouped.sort((a, b) => b.popularityScore - a.popularityScore);
+    setGroupedArtists(grouped);
   };
 
-  const updateStats = () => {
-    const votes = getAllVotes();
-    const songVotes = getAllSongVotes();
-    const voteCount = Object.keys(votes).length;
-    const songVoteCount = Object.keys(songVotes).length;
-    
-    setTotalVotes(voteCount);
-
-    if (voteCount > 0 || songVoteCount > 0) {
-      const schedule = generatePreferredSchedule();
-      setPreferenceStats({
-        preferred: schedule.preferredArtists.length,
-        neutral: schedule.neutralArtists.length,
-        avoided: schedule.avoidArtists.length,
-        averageScore: schedule.averageScore
-      });
-      
-      setSongStats({
-        totalSongVotes: schedule.totalSongVotes,
-        preferredSongs: schedule.preferredSongs.length,
-        neutralSongs: schedule.neutralSongs.length,
-        avoidedSongs: schedule.avoidSongs.length,
-        averageSongScore: schedule.averageSongScore
-      });
-    } else {
-      setPreferenceStats({
-        preferred: 0,
-        neutral: 0,
-        avoided: 0,
-        averageScore: 0
-      });
-      
-      setSongStats({
-        totalSongVotes: 0,
-        preferredSongs: 0,
-        neutralSongs: 0,
-        avoidedSongs: 0,
-        averageSongScore: 0
-      });
-    }
-  };
-
-  const handleArtistPress = (artist: ArtistWithSongs) => {
-    // Add artist info from database to the artist object
+  const handleArtistPress = (artist: GroupedArtist) => {
     const artistWithFullInfo = {
-      ...artist,
-      artistInfo: genericArtistDatabase[artist.name]
+      name: artist.artistName,
+      songs: artist.songs,
+      image: artist.artistInfo?.image || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
+      genre: artist.artistInfo?.genre || 'Unknown',
+      bio: artist.artistInfo?.bio || 'No bio available',
+      popularity: artist.popularityScore,
+      artistInfo: artist.artistInfo,
     };
     navigation.navigate('ArtistSongs', { artist: artistWithFullInfo });
   };
 
   const handleGenerateSchedule = () => {
-    if (totalVotes === 0 && songStats.totalSongVotes === 0) {
+    const results = generatePreferredSchedule();
+    
+    if (results.totalVotes === 0) {
       Alert.alert(
         'No Votes Yet',
-        'Please vote on some artists or songs first to generate your personalized schedule.',
+        'Please vote on some artists and songs first to generate your personalized schedule.',
         [{ text: 'OK' }]
       );
       return;
     }
 
-    const schedule = generatePreferredSchedule();
-    
-    let message = `Based on your voting activity:\n\n`;
-    
-    if (totalVotes > 0) {
-      message += `🎤 ARTIST VOTES (${totalVotes}):\n`;
-      message += `✅ Preferred: ${schedule.preferredArtists.length}\n`;
-      message += `😐 Neutral: ${schedule.neutralArtists.length}\n`;
-      message += `❌ Avoid: ${schedule.avoidArtists.length}\n`;
-      message += `📊 Avg Score: ${schedule.averageScore.toFixed(1)}/2\n\n`;
-    }
-    
-    if (songStats.totalSongVotes > 0) {
-      message += `🎵 SONG VOTES (${songStats.totalSongVotes}):\n`;
-      message += `✅ Liked Songs: ${songStats.preferredSongs}\n`;
-      message += `😐 Neutral Songs: ${songStats.neutralSongs}\n`;
-      message += `❌ Disliked Songs: ${songStats.avoidedSongs}\n`;
-      message += `📊 Avg Score: ${songStats.averageSongScore.toFixed(1)}/2\n\n`;
-    }
-    
-    if (schedule.preferredArtists.length > 0) {
-      message += `🌟 TOP ARTIST RECOMMENDATIONS:\n`;
-      schedule.preferredArtists.slice(0, 3).forEach((artist, index) => {
-        message += `${index + 1}. ${artist.artistName} (${artist.score > 0 ? '+' : ''}${artist.score})\n`;
-      });
-    }
-    
-    if (schedule.preferredSongs.length > 0) {
-      message += `\n🎶 TOP SONG RECOMMENDATIONS:\n`;
-      schedule.preferredSongs.slice(0, 3).forEach((song, index) => {
-        message += `${index + 1}. "${song.songTitle}" by ${song.artistName} (${song.score > 0 ? '+' : ''}${song.score})\n`;
-      });
-    }
-
-    Alert.alert('Your Personalized Schedule', message, [{ text: 'Great!' }]);
-  };
-
-  const handleScroll = (event: any) => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.round(offsetX / (CARD_WIDTH + CARD_SPACING));
-    setCurrentIndex(index);
-  };
-
-  const renderArtistCard = (artist: ArtistWithSongs, index: number) => {
-    const inputRange = [
-      (index - 1) * (CARD_WIDTH + CARD_SPACING),
-      index * (CARD_WIDTH + CARD_SPACING),
-      (index + 1) * (CARD_WIDTH + CARD_SPACING),
-    ];
-
-    const scale = scrollX.interpolate({
-      inputRange,
-      outputRange: [0.8, 1, 0.8],
-      extrapolate: 'clamp',
-    });
-
-    const rotateY = scrollX.interpolate({
-      inputRange,
-      outputRange: ['45deg', '0deg', '-45deg'],
-      extrapolate: 'clamp',
-    });
-
-    const opacity = scrollX.interpolate({
-      inputRange,
-      outputRange: [0.6, 1, 0.6],
-      extrapolate: 'clamp',
-    });
-
-    return (
-      <Animated.View
-        key={artist.name}
-        style={[
-          styles.artistCard,
-          {
-            transform: [{ scale }, { rotateY }],
-            opacity,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.cardContent}
-          onPress={() => handleArtistPress(artist)}
-          activeOpacity={0.9}
-        >
-          <Image source={{ uri: artist.image }} style={styles.artistImage} />
-          
-          <View style={styles.artistInfo}>
-            <Text style={styles.artistName}>{artist.name}</Text>
-            <Text style={styles.artistGenre}>{artist.genre}</Text>
-            <Text style={styles.songCount}>{artist.songs.length} songs</Text>
-          </View>
-
-          <View style={styles.songsContainer}>
-            <Text style={styles.songsTitle}>Featured Songs:</Text>
-            <ScrollView style={styles.songsList} showsVerticalScrollIndicator={false}>
-              {artist.songs.map((song, songIndex) => (
-                <View key={song.id} style={styles.songItem}>
-                  <Text style={styles.songTitle} numberOfLines={1}>
-                    {songIndex + 1}. {song.title}
-                  </Text>
-                  <Text style={styles.songDuration}>{song.duration}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-
-          <View style={styles.popularityContainer}>
-            <Text style={styles.popularityLabel}>Popularity</Text>
-            <View style={styles.popularityBar}>
-              <View 
-                style={[
-                  styles.popularityFill, 
-                  { width: `${artist.popularity}%` }
-                ]} 
-              />
-            </View>
-            <Text style={styles.popularityScore}>{artist.popularity}/100</Text>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+    Alert.alert(
+      'Schedule Generated Successfully! 🎉',
+      `Your personalized schedule has been created based on ${results.totalVotes} artist votes and ${results.totalSongVotes} song votes. You'll love ${results.preferredArtists.length} artists and want to avoid ${results.avoidArtists.length} artists.`,
+      [
+        {
+          text: 'View Schedule',
+          onPress: () => {
+            // Navigate back to RSVP screen with schedule tab active
+            navigation.navigate('RSVP', { 
+              festival: { 
+                name: 'Global Beats Festival',
+                location: 'Festival Grounds',
+                dates: 'June 10-12, 2024'
+              } 
+            });
+          }
+        }
+      ]
     );
   };
 
-  const renderPaginationDots = () => {
-    return (
-      <View style={styles.paginationContainer}>
-        {artistsWithSongs.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.paginationDot,
-              index === currentIndex && styles.paginationDotActive
-            ]}
-          />
-        ))}
+  const renderWeekButton = (playlist: any) => (
+    <TouchableOpacity
+      key={playlist.weekNumber}
+      style={[
+        styles.weekButton,
+        selectedWeek === playlist.weekNumber && styles.weekButtonActive,
+      ]}
+      onPress={() => setSelectedWeek(playlist.weekNumber)}
+    >
+      <Text style={[
+        styles.weekButtonText,
+        selectedWeek === playlist.weekNumber && styles.weekButtonTextActive,
+      ]}>
+        Week {playlist.weekNumber}
+      </Text>
+      <Text style={[
+        styles.weekButtonSubtext,
+        selectedWeek === playlist.weekNumber && styles.weekButtonSubtextActive,
+      ]}>
+        {playlist.tracks.length} tracks
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderArtistListItem = ({ item: artist }: { item: GroupedArtist }) => (
+    <TouchableOpacity
+      style={styles.artistListItem}
+      onPress={() => handleArtistPress(artist)}
+    >
+      <Image
+        source={{ 
+          uri: artist.artistInfo?.image || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop' 
+        }}
+        style={styles.artistListImage}
+      />
+      <View style={styles.artistListContent}>
+        <View style={styles.artistListHeader}>
+          <Text style={styles.artistListName}>{artist.artistName}</Text>
+          <View style={styles.popularityBadgeSmall}>
+            <Text style={styles.popularityTextSmall}>{artist.popularityScore}</Text>
+          </View>
+        </View>
+        <Text style={styles.artistListGenre}>{artist.artistInfo?.genre || 'Unknown Genre'}</Text>
+        <View style={styles.artistListStats}>
+          <Text style={styles.artistListStat}>{artist.songs.length} songs</Text>
+          <Text style={styles.artistListStat}>•</Text>
+          <Text style={styles.artistListStat}>{artist.totalDuration}</Text>
+          <Text style={styles.artistListStat}>•</Text>
+          <Text style={styles.artistListStat}>
+            {artist.artistInfo?.popularity?.monthlyListeners 
+              ? `${(artist.artistInfo.popularity.monthlyListeners / 1000000).toFixed(1)}M listeners`
+              : 'New Artist'
+            }
+          </Text>
+        </View>
       </View>
-    );
-  };
+      <View style={styles.chevron}>
+        <Text style={styles.chevronText}>›</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -308,117 +213,140 @@ export default function AutomaticSchedulingScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Artist Coverflow</Text>
+        <Text style={styles.headerTitle}>Weekly Playlists</Text>
       </View>
 
-      <ScrollView 
-        style={styles.mainScrollView}
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Stats Section */}
-        <View style={styles.statsSection}>
-          <Text style={styles.statsTitle}>Your Voting Progress</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{totalVotes}</Text>
-              <Text style={styles.statLabel}>Total Votes</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: '#4CAF50' }]}>{preferenceStats.preferred}</Text>
-              <Text style={styles.statLabel}>Preferred</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: '#FF6B6B' }]}>{preferenceStats.avoided}</Text>
-              <Text style={styles.statLabel}>To Avoid</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: '#FFD93D' }]}>
-                {preferenceStats.averageScore.toFixed(1)}
-              </Text>
-              <Text style={styles.statLabel}>Avg Score</Text>
-            </View>
-          </View>
-          
-          {/* Song Stats Row */}
-          {songStats.totalSongVotes > 0 && (
-            <>
-              <Text style={[styles.statsTitle, { marginTop: 15, marginBottom: 10 }]}>Song Voting Progress</Text>
-              <View style={styles.statsGrid}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>{songStats.totalSongVotes}</Text>
-                  <Text style={styles.statLabel}>Song Votes</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={[styles.statNumber, { color: '#4CAF50' }]}>{songStats.preferredSongs}</Text>
-                  <Text style={styles.statLabel}>Liked</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={[styles.statNumber, { color: '#FF6B6B' }]}>{songStats.avoidedSongs}</Text>
-                  <Text style={styles.statLabel}>Disliked</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={[styles.statNumber, { color: '#FFD93D' }]}>
-                    {songStats.averageSongScore.toFixed(1)}
-                  </Text>
-                  <Text style={styles.statLabel}>Song Avg</Text>
-                </View>
-              </View>
-            </>
-          )}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Week Selector */}
+        <View style={styles.weekSelectorContainer}>
+          <Text style={styles.sectionTitle}>Choose Your Week</Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.weekSelectorContent}
+          >
+            {weeklyPlaylists.map(renderWeekButton)}
+          </ScrollView>
         </View>
 
-        {/* Artist Coverflow */}
-        <View style={styles.coverflowContainer}>
-          <Text style={styles.sectionTitle}>Festival Artists ({artistsWithSongs.length} total)</Text>
-          <Text style={styles.sectionSubtitle}>
-            Swipe through artists and their songs • Tap to explore
-          </Text>
-          
-          <Animated.ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={CARD_WIDTH + CARD_SPACING}
-            decelerationRate="fast"
-            contentContainerStyle={styles.scrollContainer}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-              { 
-                useNativeDriver: true,
-                listener: handleScroll,
-              }
-            )}
-            scrollEventThrottle={16}
-            onMomentumScrollEnd={handleScroll}
-          >
-            {artistsWithSongs.map((artist, index) => renderArtistCard(artist, index))}
-          </Animated.ScrollView>
+        {/* Current Playlist Info */}
+        <View style={styles.playlistInfoContainer}>
+          <Image 
+            source={{ uri: currentPlaylist.coverImage }}
+            style={styles.playlistCoverImage}
+          />
+          <View style={styles.playlistInfoOverlay}>
+            <Text style={styles.playlistTitle}>{currentPlaylist.weekTitle}</Text>
+            <Text style={styles.playlistDescription}>{currentPlaylist.description}</Text>
+            <View style={styles.playlistStats}>
+              <Text style={styles.playlistStat}>{currentPlaylist.tracks.length} tracks</Text>
+              <Text style={styles.playlistStat}>•</Text>
+              <Text style={styles.playlistStat}>{currentPlaylist.totalDuration}</Text>
+              <Text style={styles.playlistStat}>•</Text>
+              <Text style={styles.playlistStat}>{groupedArtists.length} artists</Text>
+            </View>
+          </View>
+        </View>
 
-          {/* Pagination Dots */}
-          {renderPaginationDots()}
+        {/* Polling Results Section */}
+        {pollingResults && pollingResults.totalVotes > 0 && (
+          <View style={styles.pollingSection}>
+            <Text style={styles.sectionTitle}>Your Voting Results</Text>
+            <View style={styles.pollingStats}>
+              <View style={styles.pollingStatItem}>
+                <Text style={styles.pollingStatNumber}>{pollingResults.totalVotes}</Text>
+                <Text style={styles.pollingStatLabel}>Artist Votes</Text>
+              </View>
+              <View style={styles.pollingStatItem}>
+                <Text style={styles.pollingStatNumber}>{pollingResults.totalSongVotes}</Text>
+                <Text style={styles.pollingStatLabel}>Song Votes</Text>
+              </View>
+              <View style={styles.pollingStatItem}>
+                <Text style={styles.pollingStatNumber}>{pollingResults.averageScore.toFixed(1)}</Text>
+                <Text style={styles.pollingStatLabel}>Avg Score</Text>
+              </View>
+            </View>
+            
+            <View style={styles.pollingBreakdown}>
+              <View style={styles.pollingCategory}>
+                <Text style={styles.pollingCategoryTitle}>
+                  ❤️ Preferred Artists ({pollingResults.preferredArtists.length})
+                </Text>
+                {pollingResults.preferredArtists.slice(0, 3).map((artist: any, index: number) => (
+                  <Text key={index} style={styles.pollingArtistItem}>
+                    {voteLabels[artist.score].emoji} {artist.artistName}
+                  </Text>
+                ))}
+              </View>
+              
+              {pollingResults.avoidArtists.length > 0 && (
+                <View style={styles.pollingCategory}>
+                  <Text style={styles.pollingCategoryTitle}>
+                    ❌ Artists to Avoid ({pollingResults.avoidArtists.length})
+                  </Text>
+                  {pollingResults.avoidArtists.slice(0, 2).map((artist: any, index: number) => (
+                    <Text key={index} style={styles.pollingArtistItem}>
+                      {voteLabels[artist.score].emoji} {artist.artistName}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* All Artists List */}
+        <View style={styles.allArtistsSection}>
+          <Text style={styles.sectionTitle}>All Artists This Week</Text>
+          <Text style={styles.sectionSubtitle}>
+            Tap any artist to explore their songs and rate them
+          </Text>
+          <FlatList
+            data={groupedArtists}
+            renderItem={renderArtistListItem}
+            keyExtractor={(item) => item.artistName}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          />
         </View>
 
         {/* Generate Schedule Button */}
-        <View style={styles.generateSection}>
+        <View style={styles.generateScheduleSection}>
           <TouchableOpacity
-            style={[
-              styles.generateButton,
-              (totalVotes === 0 && songStats.totalSongVotes === 0) && styles.generateButtonDisabled
-            ]}
+            style={styles.generateScheduleButton}
             onPress={handleGenerateSchedule}
             activeOpacity={0.8}
           >
-            <Text style={styles.generateButtonIcon}>🎯</Text>
-            <Text style={styles.generateButtonText}>Generate My Schedule</Text>
-            <Text style={styles.generateButtonSubtext}>
-              {totalVotes === 0 && songStats.totalSongVotes === 0
-                ? 'Vote on artists or songs first' 
-                : `Based on ${totalVotes} artist votes${songStats.totalSongVotes > 0 ? ` & ${songStats.totalSongVotes} song votes` : ''}`
-              }
-            </Text>
+            <Text style={styles.generateScheduleIcon}>🎯</Text>
+            <View style={styles.generateScheduleContent}>
+              <Text style={styles.generateScheduleTitle}>Generate My Schedule</Text>
+              <Text style={styles.generateScheduleSubtitle}>
+                Create your personalized festival schedule based on your votes
+              </Text>
+            </View>
+            <Text style={styles.generateScheduleArrow}>→</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Floating Message Button */}
+      <TouchableOpacity 
+        style={styles.floatingMessageButton}
+        onPress={toggleModal}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.messageIcon}>💬</Text>
+        {unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadCount}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Message Modal */}
+      <MessageModal />
     </View>
   );
 }
@@ -433,21 +361,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 15,
-    backgroundColor: '#000',
-    zIndex: 10,
-  },
-  mainScrollView: {
-    flex: 1,
-  },
-  scrollContent: {
     paddingBottom: 20,
+    backgroundColor: '#000',
   },
   backButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 25,
     marginRight: 15,
   },
   backButtonText: {
@@ -457,208 +378,306 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  statsSection: {
-    backgroundColor: '#111',
-    borderRadius: 15,
-    padding: 20,
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  statsTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    color: '#ff6b6b',
     fontSize: 24,
     fontWeight: 'bold',
   },
-  statLabel: {
-    color: '#ccc',
-    fontSize: 12,
-    marginTop: 5,
+  scrollView: {
+    flex: 1,
   },
   sectionTitle: {
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 15,
     paddingHorizontal: 20,
   },
   sectionSubtitle: {
-    color: '#ccc',
+    color: '#888',
     fontSize: 14,
     marginBottom: 15,
     paddingHorizontal: 20,
   },
-  coverflowContainer: {
+  
+  // Week Selector Styles
+  weekSelectorContainer: {
+    marginBottom: 25,
+  },
+  weekSelectorContent: {
+    paddingHorizontal: 15,
+  },
+  weekButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginHorizontal: 5,
+    minWidth: 80,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  weekButtonActive: {
+    backgroundColor: '#ff6b6b',
+    borderColor: '#ff8a8a',
+  },
+  weekButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  weekButtonTextActive: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  weekButtonSubtext: {
+    color: '#888',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  weekButtonSubtextActive: {
+    color: '#fff',
+  },
+
+  // Playlist Info Styles
+  playlistInfoContainer: {
+    marginHorizontal: 20,
     marginBottom: 30,
-    minHeight: CARD_HEIGHT + 100,
+    borderRadius: 20,
+    overflow: 'hidden',
+    height: 200,
   },
-  scrollContainer: {
-    paddingHorizontal: (screenWidth - CARD_WIDTH) / 2,
+  playlistCoverImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
   },
-  artistCard: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    marginHorizontal: CARD_SPACING / 2,
-  },
-  cardContent: {
+  playlistInfoOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  playlistTitle: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  playlistDescription: {
+    color: '#ddd',
+    fontSize: 16,
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  playlistStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  playlistStat: {
+    color: '#ccc',
+    fontSize: 14,
+    marginRight: 8,
+  },
+
+  // Polling Results Styles
+  pollingSection: {
+    marginHorizontal: 20,
+    marginBottom: 30,
     backgroundColor: '#111',
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.3)',
   },
-  artistImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 15,
-    marginBottom: 15,
+  pollingStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
   },
-  artistInfo: {
+  pollingStatItem: {
     alignItems: 'center',
-    marginBottom: 15,
   },
-  artistName: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  artistGenre: {
+  pollingStatNumber: {
     color: '#ff6b6b',
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 24,
+    fontWeight: 'bold',
   },
-  songCount: {
+  pollingStatLabel: {
     color: '#ccc',
-    fontSize: 14,
+    fontSize: 12,
+    marginTop: 4,
   },
-  songsContainer: {
-    flex: 1,
+  pollingBreakdown: {
+    marginTop: 15,
+  },
+  pollingCategory: {
     marginBottom: 15,
   },
-  songsTitle: {
+  pollingCategoryTitle: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  songsList: {
-    flex: 1,
-  },
-  songItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  songTitle: {
+  pollingArtistItem: {
     color: '#ccc',
     fontSize: 14,
-    flex: 1,
-    marginRight: 10,
+    marginBottom: 4,
+    paddingLeft: 10,
   },
-  songDuration: {
-    color: '#888',
-    fontSize: 12,
+
+  // Generate Schedule Button Styles
+  generateScheduleSection: {
+    marginHorizontal: 20,
+    marginBottom: 30,
   },
-  popularityContainer: {
+  generateScheduleButton: {
+    backgroundColor: '#ff6b6b',
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: 'row',
     alignItems: 'center',
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  popularityLabel: {
+  generateScheduleIcon: {
+    fontSize: 32,
+    marginRight: 15,
+  },
+  generateScheduleContent: {
+    flex: 1,
+  },
+  generateScheduleTitle: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  popularityBar: {
-    width: '100%',
-    height: 6,
-    backgroundColor: '#333',
-    borderRadius: 3,
-    marginBottom: 5,
+  generateScheduleSubtitle: {
+    color: '#fff',
+    fontSize: 14,
+    opacity: 0.9,
+    lineHeight: 20,
   },
-  popularityFill: {
-    height: '100%',
-    backgroundColor: '#ff6b6b',
-    borderRadius: 3,
+  generateScheduleArrow: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
   },
-  popularityScore: {
-    color: '#ccc',
-    fontSize: 12,
+
+  // All Artists List Styles
+  allArtistsSection: {
+    marginBottom: 30,
   },
-  paginationContainer: {
+  artistListItem: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    backgroundColor: '#111',
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 20,
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 4,
+  artistListImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    marginRight: 15,
   },
-  paginationDotActive: {
-    backgroundColor: '#ff6b6b',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  artistListContent: {
+    flex: 1,
   },
-  generateSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    marginTop: 20,
-  },
-  generateButton: {
-    backgroundColor: '#ff6b6b',
-    borderRadius: 15,
-    padding: 20,
+  artistListHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  generateButtonDisabled: {
-    backgroundColor: '#333',
-  },
-  generateButtonIcon: {
-    fontSize: 30,
-    marginBottom: 10,
-  },
-  generateButtonText: {
+  artistListName: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+    flex: 1,
   },
-  generateButtonSubtext: {
+  popularityBadgeSmall: {
+    backgroundColor: '#ff6b6b',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  popularityTextSmall: {
     color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  artistListGenre: {
+    color: '#ff6b6b',
     fontSize: 14,
-    opacity: 0.8,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  artistListStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  artistListStat: {
+    color: '#888',
+    fontSize: 12,
+    marginRight: 6,
+  },
+  chevron: {
+    marginLeft: 10,
+  },
+  chevronText: {
+    color: '#666',
+    fontSize: 24,
+    fontWeight: '300',
+  },
+  separator: {
+    height: 12,
+  },
+  // Floating Message Button Styles
+  floatingMessageButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ff6b6b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+  messageIcon: {
+    fontSize: 24,
+    color: '#fff',
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#f44336',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  unreadCount: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

@@ -16,6 +16,8 @@ import { genericArtistDatabase, GenericArtistInfo } from '../data/artistDatabase
 import { getSongsByArtistVotes, getAllSongVotes } from '../data/votingData';
 import SongVotingComponent from '../components/SongVotingComponent';
 import ArtistVotingComponent from '../components/ArtistVotingComponent';
+import { useMessages } from '../contexts/MessageContext';
+import { MessageModal } from '../components/messaging/MessageModal';
 
 interface ArtistWithSongs {
   name: string;
@@ -52,6 +54,9 @@ export default function ArtistSongsScreen() {
     avoided: 0,
     averageScore: 0
   });
+
+  // Message context
+  const { toggleModal, unreadCount } = useMessages();
 
   useEffect(() => {
     updateSongStats();
@@ -139,88 +144,109 @@ export default function ArtistSongsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Artist Songs</Text>
-      </View>
-
-      {/* Artist Info Section */}
-      <View style={styles.artistSection}>
-        <Image source={{ uri: artist.image }} style={styles.artistImage} />
-        <View style={styles.artistInfo}>
-          <Text style={styles.artistName}>{artist.name}</Text>
-          <Text style={styles.artistGenre}>{artist.genre}</Text>
-          <Text style={styles.songCount}>{artist.songs.length} songs available</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Artist Songs</Text>
         </View>
-      </View>
 
-      {/* Artist Voting Section */}
-      <View style={styles.artistVotingSection}>
-        <Text style={styles.sectionTitle}>Rate this Artist</Text>
-        <ArtistVotingComponent 
-          artistName={artist.name}
-          compact={false}
-        />
-      </View>
-
-      {/* Song Vote Stats */}
-      <View style={styles.statsSection}>
-        <Text style={styles.statsTitle}>Your Song Voting Progress</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{songVoteStats.totalVotes}</Text>
-            <Text style={styles.statLabel}>Song Votes</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: '#4CAF50' }]}>{songVoteStats.preferred}</Text>
-            <Text style={styles.statLabel}>Liked</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: '#FF6B6B' }]}>{songVoteStats.avoided}</Text>
-            <Text style={styles.statLabel}>Disliked</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: '#FFD93D' }]}>
-              {songVoteStats.averageScore.toFixed(1)}
-            </Text>
-            <Text style={styles.statLabel}>Avg Score</Text>
+        {/* Artist Info Section */}
+        <View style={styles.artistSection}>
+          <Image source={{ uri: artist.image }} style={styles.artistImage} />
+          <View style={styles.artistInfo}>
+            <Text style={styles.artistName}>{artist.name}</Text>
+            <Text style={styles.artistGenre}>{artist.genre}</Text>
+            <Text style={styles.songCount}>{artist.songs.length} songs available</Text>
           </View>
         </View>
-      </View>
 
-      {/* Songs List */}
-      <View style={styles.songsSection}>
-        <Text style={styles.sectionTitle}>Songs by {artist.name}</Text>
-        <Text style={styles.sectionSubtitle}>
-          Rate each song to help personalize your festival experience
-        </Text>
-        
-        {artist.songs.map((song, index) => renderSongItem(song, index))}
-      </View>
+        {/* Artist Voting Section */}
+        <View style={styles.artistVotingSection}>
+          <Text style={styles.sectionTitle}>Rate this Artist</Text>
+          <ArtistVotingComponent 
+            artistName={artist.name}
+            compact={false}
+          />
+        </View>
 
-      {/* Artist Bio Section */}
-      {artist.artistInfo && (
-        <View style={styles.bioSection}>
-          <Text style={styles.sectionTitle}>About {artist.name}</Text>
-          <Text style={styles.bioText}>{artist.artistInfo.bio}</Text>
-          
-          {artist.artistInfo.achievements.length > 0 && (
-            <View style={styles.achievementsSection}>
-              <Text style={styles.achievementsTitle}>Achievements</Text>
-              {artist.artistInfo.achievements.slice(0, 3).map((achievement, index) => (
-                <Text key={index} style={styles.achievementItem}>
-                  • {achievement}
-                </Text>
-              ))}
+        {/* Song Vote Stats */}
+        <View style={styles.statsSection}>
+          <Text style={styles.statsTitle}>Your Song Voting Progress</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{songVoteStats.totalVotes}</Text>
+              <Text style={styles.statLabel}>Song Votes</Text>
             </View>
-          )}
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: '#4CAF50' }]}>{songVoteStats.preferred}</Text>
+              <Text style={styles.statLabel}>Liked</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: '#FF6B6B' }]}>{songVoteStats.avoided}</Text>
+              <Text style={styles.statLabel}>Disliked</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: '#FFD93D' }]}>
+                {songVoteStats.averageScore.toFixed(1)}
+              </Text>
+              <Text style={styles.statLabel}>Avg Score</Text>
+            </View>
+          </View>
         </View>
-      )}
-    </ScrollView>
+
+        {/* Songs List */}
+        <View style={styles.songsSection}>
+          <Text style={styles.sectionTitle}>Songs by {artist.name}</Text>
+          <Text style={styles.sectionSubtitle}>
+            Rate each song to help personalize your festival experience
+          </Text>
+          
+          {artist.songs.map((song, index) => renderSongItem(song, index))}
+        </View>
+
+        {/* Artist Bio Section */}
+        {artist.artistInfo && (
+          <View style={styles.bioSection}>
+            <Text style={styles.sectionTitle}>About {artist.name}</Text>
+            <Text style={styles.bioText}>{artist.artistInfo.bio}</Text>
+            
+            {artist.artistInfo.achievements.length > 0 && (
+              <View style={styles.achievementsSection}>
+                <Text style={styles.achievementsTitle}>Achievements</Text>
+                {artist.artistInfo.achievements.slice(0, 3).map((achievement, index) => (
+                  <Text key={index} style={styles.achievementItem}>
+                    • {achievement}
+                  </Text>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Floating Message Button */}
+      <TouchableOpacity 
+        style={styles.floatingMessageButton}
+        onPress={toggleModal}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.messageIcon}>💬</Text>
+        {unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadCount}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Message Modal */}
+      <MessageModal />
+    </View>
   );
 }
 
@@ -411,5 +437,48 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 5,
     lineHeight: 18,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  // Floating Message Button Styles
+  floatingMessageButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ff6b6b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+  messageIcon: {
+    fontSize: 24,
+    color: '#fff',
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#f44336',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  unreadCount: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

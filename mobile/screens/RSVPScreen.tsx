@@ -4,6 +4,8 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Festival } from './EventDetailScreen';
 import { genericArtistDatabase } from '../data/artistDatabase';
+import { useMessages } from '../contexts/MessageContext';
+import { MessageModal } from '../components/messaging/MessageModal';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -244,6 +246,9 @@ export default function RSVPScreen() {
   const [activeTab, setActiveTab] = useState<'news' | 'schedule' | 'map'>('news');
   const [rsvpStatus, setRsvpStatus] = useState<'going' | 'maybe' | 'not-going' | null>(null);
   const [newsData, setNewsData] = useState<NewsItem[]>(mockNewsData);
+  
+  // Message context
+  const { toggleModal, unreadCount } = useMessages();
 
   // Generate schedule data filtered by the current festival name
   const scheduleData = generateScheduleData(festival.name);
@@ -454,6 +459,25 @@ export default function RSVPScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Floating Message Button */}
+      <TouchableOpacity 
+        style={styles.floatingMessageButton}
+        onPress={toggleModal}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.messageIcon}>💬</Text>
+        {unreadCount > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadCount}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* Message Modal */}
+      <MessageModal />
     </View>
   );
 }
@@ -756,6 +780,46 @@ const styles = StyleSheet.create({
   automaticSchedulingArrow: {
     color: '#fff',
     fontSize: 24,
+    fontWeight: 'bold',
+  },
+  // Floating Message Button Styles
+  floatingMessageButton: {
+    position: 'absolute',
+    bottom: 130, // Above bottom tabs
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ff6b6b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#ff6b6b',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+  messageIcon: {
+    fontSize: 24,
+    color: '#fff',
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#f44336',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  unreadCount: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: 'bold',
   },
 });

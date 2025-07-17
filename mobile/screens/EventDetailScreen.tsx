@@ -79,6 +79,13 @@ export default function EventDetailScreen() {
           <Text style={styles.description}>{festival.description}</Text>
         </View>
 
+        <TouchableOpacity 
+          style={styles.rsvpButton}
+          onPress={() => navigation.navigate('RSVP', { festival })}
+        >
+          <Text style={styles.rsvpButtonText}>Access the event</Text>
+        </TouchableOpacity>
+
         <SimpleArtistList
           festivalName={festival.name} 
           lineup={festival.lineup} 
@@ -89,14 +96,6 @@ export default function EventDetailScreen() {
             }
           }} 
         />
-
-        <TouchableOpacity 
-          style={styles.rsvpButton}
-          onPress={() => navigation.navigate('RSVP', { festival })}
-        >
-          <Text style={styles.rsvpButtonIcon}>📝</Text>
-          <Text style={styles.rsvpButtonText}>RSVP & Updates</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
